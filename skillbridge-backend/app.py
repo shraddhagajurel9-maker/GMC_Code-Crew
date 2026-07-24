@@ -2,6 +2,7 @@
 from config import Config
 from extensions import db, cors
 from models.user import User
+from routes.auth_routes import auth_bp
 
 def create_app():
     app = Flask(__name__)
@@ -9,6 +10,8 @@ def create_app():
 
     db.init_app(app)
     cors.init_app(app)
+
+    app.register_blueprint(auth_bp, url_prefix='/api/auth')
 
     @app.route('/')
     def health_check():
