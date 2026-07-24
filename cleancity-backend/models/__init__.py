@@ -1,1 +1,3 @@
-from models.models import WasteReport
+from models.models import User, Complaint
+
+__all__ = ["User", "Complaint"]

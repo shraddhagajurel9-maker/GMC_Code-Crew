@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard - CleanCity Nepal{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4><i class="bi bi-bar-chart-line"></i> Municipality Dashboard</h4>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm bg-success text-white">
+            <div class="card-body text-center">
+                <i class="bi bi-clipboard-data fs-1"></i>
+                <h2 class="mt-2">{{ total }}</h2>
+                <p class="mb-0">Total Complaints</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm bg-warning text-dark">
+            <div class="card-body text-center">
+                <i class="bi bi-hourglass-split fs-1"></i>
+                <h2 class="mt-2">{{ pending }}</h2>
+                <p class="mb-0">Pending</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm bg-info text-white">
+            <div class="card-body text-center">
+                <i class="bi bi-person-check fs-1"></i>
+                <h2 class="mt-2">{{ assigned }}</h2>
+                <p class="mb-0">Assigned</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm bg-primary text-white">
+            <div class="card-body text-center">
+                <i class="bi bi-check-circle fs-1"></i>
+                <h2 class="mt-2">{{ resolved }}</h2>
+                <p class="mb-0">Resolved</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-pie-chart"></i> Complaint Distribution</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="statusChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white">
+                <h6 class="mb-0"><i class="bi bi-speedometer2"></i> Resolution Rate</h6>
+            </div>
+            <div class="card-body text-center">
+                {% if total > 0 %}
+                    {% set rate = (resolved / total * 100) | round(1) %}
+                {% else %}
+                    {% set rate = 0 %}
+                {% endif %}
+                <div class="display-4 fw-bold text-success mb-2">{{ rate }}%</div>
+                <p class="text-muted">{{ resolved }} of {{ total }} resolved</p>
+                <div class="progress" style="height: 12px;">
+                    <div class="progress-bar bg-success" style="width: {{ rate }}%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h5 class="mb-3"><i class="bi bi-list-columns"></i> All Complaints</h5>
+{% if complaints %}
+<div class="table-responsive">
+    <table class="table table-hover align-middle bg-white shadow-sm rounded">
+        <thead class="table-success">
+            <tr>
+                <th>#</th>
+                <th>Title</th>
+                <th>Location</th>
+                <th>Assigned To</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for c in complaints %}
+            <tr>
+                <td>{{ c.id }}</td>
+                <td>{{ c.title }}</td>
+                <td>{{ c.location }}</td>
+                <td>{{ c.assigned_to or '-' }}</td>
+                <td>
+                    {% if c.status == 'Pending' %}
+                        <span class="badge bg-warning text-dark">{{ c.status }}</span>
+                    {% elif c.status == 'Assigned' %}
+                        <span class="badge bg-info">{{ c.status }}</span>
+                    {% else %}
+                        <span class="badge bg-success">{{ c.status }}</span>
+                    {% endif %}
+                </td>
+                <td>{{ c.created_at.strftime('%Y-%m-%d') }}</td>
+                <td>
+                    <a href="{{ url_for('main.complaint_detail', complaint_id=c.id) }}"
+                       class="btn btn-sm btn-outline-success">
+                        <i class="bi bi-eye"></i> Manage
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="card shadow-sm border-0">
+    <div class="card-body text-center py-5">
+        <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+        <h5 class="mt-3 text-muted">No complaints yet</h5>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    const ctx = document.getElementById('statusChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Pending', 'Assigned', 'Resolved'],
+            datasets: [{
+                label: 'Complaints',
+                data: [{{ pending }}, {{ assigned }}, {{ resolved }}],
+                backgroundColor: ['#ffc107', '#0dcaf0', '#198754'],
+                borderRadius: 8,
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { beginAtZero: true, ticks: { stepSize: 1 } }
+            }
+        }
+    });
+</script>
+{% endblock %}

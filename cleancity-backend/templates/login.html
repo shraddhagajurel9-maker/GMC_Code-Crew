@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Login - CleanCity Nepal{% endblock %}
+
+{% block public_content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-5">
+            <div class="card shadow border-0">
+                <div class="card-body p-4">
+                    <h3 class="text-center mb-4">
+                        <i class="bi bi-box-arrow-in-right text-success"></i>
+                    </h3>
+                    <h4 class="text-center mb-4">Login to CleanCity</h4>
+
+                    <form method="POST" action="{{ url_for('main.login') }}">
+                        <div class="mb-3">
+                            <label class="form-label">Username</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                <input type="text" name="username" class="form-control"
+                                       placeholder="Enter username" required autofocus>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                <input type="password" name="password" class="form-control"
+                                       placeholder="Enter password" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100 mb-3">
+                            <i class="bi bi-box-arrow-in-right"></i> Login
+                        </button>
+                    </form>
+
+                    <p class="text-center text-muted mb-0">
+                        Don't have an account?
+                        <a href="{{ url_for('main.register') }}" class="text-success fw-bold">Register</a>
+                    </p>
+
+                    <hr>
+                    <div class="small text-muted">
+                        <strong>Demo Accounts:</strong><br>
+                        Admin: <code>admin</code> / <code>admin123</code><br>
+                        Citizen: <code>citizen</code> / <code>citizen123</code>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
