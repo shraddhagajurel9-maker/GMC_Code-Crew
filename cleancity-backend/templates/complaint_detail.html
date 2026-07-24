@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Complaint #{{ complaint.id }} - CleanCity Nepal{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4>
+                <i class="bi bi-file-earmark-text"></i>
+                Complaint #{{ complaint.id }}
+            </h4>
+            <a href="{{ url_for('main.complaints') }}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left"></i> Back
+            </a>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            {% if complaint.image %}
+            <img src="{{ url_for('static', filename='uploads/' + complaint.image) }}"
+                 class="card-img-top" alt="Complaint image" style="max-height: 400px; object-fit: cover;">
+            {% endif %}
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <h5>{{ complaint.title }}</h5>
+                    {% if complaint.status == 'Pending' %}
+                        <span class="badge bg-warning text-dark fs-6">{{ complaint.status }}</span>
+                    {% elif complaint.status == 'Assigned' %}
+                        <span class="badge bg-info fs-6">{{ complaint.status }}</span>
+                    {% else %}
+                        <span class="badge bg-success fs-6">{{ complaint.status }}</span>
+                    {% endif %}
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">
+                            <i class="bi bi-geo-alt"></i> <strong>Location</strong>
+                        </small>
+                        <span>{{ complaint.location }}</span>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">
+                            <i class="bi bi-clock"></i> <strong>Reported</strong>
+                        </small>
+                        <span>{{ complaint.created_at.strftime('%B %d, %Y at %H:%M') }}</span>
+                    </div>
+                </div>
+
+                {% if complaint.assigned_to %}
+                <div class="mb-3">
+                    <small class="text-muted d-block">
+                        <i class="bi bi-person-badge"></i> <strong>Assigned To</strong>
+                    </small>
+                    <span>{{ complaint.assigned_to }}</span>
+                </div>
+                {% endif %}
+
+                <hr>
+                <h6>Description</h6>
+                <p>{{ complaint.description }}</p>
+            </div>
+        </div>
+
+        {% if current_user.role == 'municipality' %}
+        <div class="card shadow-sm border-0 mt-4">
+            <div class="card-header bg-success text-white">
+                <h6 class="mb-0"><i class="bi bi-gear"></i> Update Status</h6>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('main.update_status', complaint_id=complaint.id) }}">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Status</label>
+                            <select name="status" class="form-select">
+                                <option value="Pending" {% if complaint.status == 'Pending' %}selected{% endif %}>
+                                    Pending
+                                </option>
+                                <option value="Assigned" {% if complaint.status == 'Assigned' %}selected{% endif %}>
+                                    Assigned
+                                </option>
+                                <option value="Resolved" {% if complaint.status == 'Resolved' %}selected{% endif %}>
+                                    Resolved
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Assign To</label>
+                            <input type="text" name="assigned_to" class="form-control"
+                                   placeholder="e.g. Ward Officer Shrestha"
+                                   value="{{ complaint.assigned_to or '' }}">
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-check-circle"></i> Update Complaint
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
