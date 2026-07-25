@@ -1,5 +1,6 @@
 ﻿import os
 from flask import Flask, render_template, jsonify, request
+from sqlalchemy import text
 from config import Config
 from database.database import db, login_manager
 
@@ -24,6 +25,7 @@ def create_app():
     with app.app_context():
         from models.models import User, Complaint  # noqa: F401
         db.create_all()
+        _ensure_schema()
         _seed_defaults()
 
     # Error handlers
@@ -36,6 +38,24 @@ def create_app():
         return render_template("404.html"), 500
 
     return app
+
+
+def _ensure_schema():
+    """Ensure existing SQLite databases receive new columns without manual migration."""
+    from sqlalchemy import inspect
+
+    inspector = inspect(db.engine)
+    if "complaints" not in inspector.get_table_names():
+        return
+
+    columns = {column["name"] for column in inspector.get_columns("complaints")}
+    if "remarks" not in columns:
+        db.session.execute(text("ALTER TABLE complaints ADD COLUMN remarks TEXT"))
+    if "updated_at" not in columns:
+        db.session.execute(text("ALTER TABLE complaints ADD COLUMN updated_at DATETIME"))
+    if "department" not in columns:
+        db.session.execute(text("ALTER TABLE complaints ADD COLUMN department VARCHAR(120)"))
+    db.session.commit()
 
 
 def _seed_defaults():

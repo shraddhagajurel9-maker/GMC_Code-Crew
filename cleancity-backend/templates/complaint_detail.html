@@ -9,7 +9,8 @@
                 <i class="bi bi-file-earmark-text"></i>
                 Complaint #{{ complaint.id }}
             </h4>
-            <a href="{{ url_for('main.complaints') }}" class="btn btn-outline-secondary btn-sm">
+            <a href="{{ url_for('main.admin_dashboard') if current_user.role == 'municipality' else url_for('main.complaints') }}"
+               class="btn btn-outline-secondary btn-sm">
                 <i class="bi bi-arrow-left"></i> Back
             </a>
         </div>
@@ -46,6 +47,21 @@
                     </div>
                 </div>
 
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">
+                            <i class="bi bi-person-badge"></i> <strong>Reported By</strong>
+                        </small>
+                        <span>{{ complaint.reporter.username if complaint.reporter else 'Unknown' }}</span>
+                    </div>
+                    <div class="col-md-6">
+                        <small class="text-muted d-block">
+                            <i class="bi bi-clock-history"></i> <strong>Last Updated</strong>
+                        </small>
+                        <span>{{ complaint.updated_at.strftime('%B %d, %Y at %H:%M') if complaint.updated_at else 'Not updated yet' }}</span>
+                    </div>
+                </div>
+
                 {% if complaint.assigned_to %}
                 <div class="mb-3">
                     <small class="text-muted d-block">
@@ -58,13 +74,19 @@
                 <hr>
                 <h6>Description</h6>
                 <p>{{ complaint.description }}</p>
+
+                {% if complaint.remarks %}
+                <div class="alert alert-success mt-3 mb-0">
+                    <strong>Admin Review:</strong> {{ complaint.remarks }}
+                </div>
+                {% endif %}
             </div>
         </div>
 
         {% if current_user.role == 'municipality' %}
         <div class="card shadow-sm border-0 mt-4">
             <div class="card-header bg-success text-white">
-                <h6 class="mb-0"><i class="bi bi-gear"></i> Update Status</h6>
+                <h6 class="mb-0"><i class="bi bi-gear"></i> Manage Complaint</h6>
             </div>
             <div class="card-body">
                 <form method="POST" action="{{ url_for('main.update_status', complaint_id=complaint.id) }}">
@@ -86,8 +108,22 @@
                         <div class="col-md-6">
                             <label class="form-label">Assign To</label>
                             <input type="text" name="assigned_to" class="form-control"
-                                   placeholder="e.g. Ward Officer Shrestha"
+                                   placeholder="e.g. Field Officer"
                                    value="{{ complaint.assigned_to or '' }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Department</label>
+                            <select name="department" class="form-select">
+                                <option value="" {% if not complaint.department %}selected{% endif %}>Select department</option>
+                                {% for department in departments %}
+                                <option value="{{ department.name }}" {% if complaint.department == department.name %}selected{% endif %}>{{ department.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Remarks</label>
+                            <textarea name="remarks" class="form-control" rows="4"
+                                      placeholder="Add a review note, action taken, or next step...">{{ complaint.remarks or '' }}</textarea>
                         </div>
                         <div class="col-12">
                             <button type="submit" class="btn btn-success">
@@ -98,7 +134,54 @@
                 </form>
             </div>
         </div>
+
+        <div class="card shadow-sm border-0 mt-4">
+            <div class="card-header bg-light">
+                <h6 class="mb-0"><i class="bi bi-clock-history"></i> Review Timeline</h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <strong>Reported:</strong> {{ complaint.created_at.strftime('%B %d, %Y at %H:%M') }}
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Current Status:</strong> {{ complaint.status }}
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Assigned To:</strong> {{ complaint.assigned_to or 'Not assigned yet' }}
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Latest Remarks:</strong> {{ complaint.remarks or 'No remarks added yet' }}
+                    </li>
+                </ul>
+            </div>
+        </div>
         {% endif %}
+
+        <div class="card shadow-sm border-0 mt-4">
+            <div class="card-header bg-light">
+                <h6 class="mb-0"><i class="bi bi-clock-history"></i> Activity Timeline</h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                        <strong>Reported:</strong> {{ complaint.created_at.strftime('%B %d, %Y at %H:%M') }}
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Current Status:</strong> {{ complaint.status }}
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Assigned To:</strong> {{ complaint.assigned_to or 'Not assigned yet' }}
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Latest Remarks:</strong> {{ complaint.remarks or 'No remarks added yet' }}
+                    </li>
+                    <li class="list-group-item">
+                        <strong>Last Updated:</strong> {{ complaint.updated_at.strftime('%B %d, %Y at %H:%M') if complaint.updated_at else 'Not updated yet' }}
+                    </li>
+                </ul>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

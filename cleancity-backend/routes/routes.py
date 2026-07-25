@@ -1,5 +1,6 @@
 import os
 import uuid
+from datetime import datetime, timezone
 from functools import wraps
 from flask import (
     Blueprint, render_template, redirect, url_for,
@@ -8,7 +9,7 @@ from flask import (
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
 from database.database import db
-from models.models import User, Complaint
+from models.models import User, Complaint, Department
 
 main = Blueprint("main", __name__)
 
@@ -225,7 +226,8 @@ def complaint_detail(complaint_id):
         flash("Access denied.", "danger")
         return redirect(url_for("main.complaints"))
 
-    return render_template("complaint_detail.html", complaint=complaint)
+    departments = Department.query.order_by(Department.name.asc()).all()
+    return render_template("complaint_detail.html", complaint=complaint, departments=departments)
 
 
 # ---- Update Status (Municipality) ----
@@ -240,12 +242,16 @@ def update_status(complaint_id):
 
     new_status = request.form.get("status", "")
     assign_to = request.form.get("assigned_to", "").strip()
+    department = request.form.get("department", "").strip()
+    remarks = request.form.get("remarks", "").strip()
 
     if new_status in Complaint.VALID_STATUSES:
         complaint.status = new_status
 
-    if assign_to:
-        complaint.assigned_to = assign_to
+    complaint.assigned_to = assign_to or None
+    complaint.department = department or None
+    complaint.remarks = remarks or None
+    complaint.updated_at = datetime.now(timezone.utc)
 
     db.session.commit()
     flash(f"Complaint #{complaint.id} updated to {complaint.status}.", "success")
@@ -273,3 +279,48 @@ def admin_dashboard():
         total=total, pending=pending,
         assigned=assigned, resolved=resolved
     )
+
+
+@main.route("/admin/complaints")
+@municipality_required
+def admin_complaints():
+    complaints = Complaint.query.order_by(Complaint.created_at.desc()).all()
+    departments = Department.query.order_by(Department.name.asc()).all()
+    return render_template("admin_complaints.html", complaints=complaints, departments=departments)
+
+
+@main.route("/admin/departments", methods=["GET", "POST"])
+@municipality_required
+def admin_departments():
+    if request.method == "POST":
+        name = request.form.get("name", "").strip()
+        description = request.form.get("description", "").strip()
+
+        if not name:
+            flash("Department name is required.", "danger")
+        else:
+            existing = Department.query.filter_by(name=name).first()
+            if existing:
+                flash("Department already exists.", "warning")
+            else:
+                department = Department(name=name, description=description or None)
+                db.session.add(department)
+                db.session.commit()
+                flash(f"Department '{name}' added.", "success")
+
+    departments = Department.query.order_by(Department.name.asc()).all()
+    return render_template("admin_departments.html", departments=departments)
+
+
+@main.route("/admin/departments/<int:department_id>/delete", methods=["POST"])
+@municipality_required
+def delete_department(department_id):
+    department = db.session.get(Department, department_id)
+    if not department:
+        flash("Department not found.", "danger")
+        return redirect(url_for("main.admin_departments"))
+
+    db.session.delete(department)
+    db.session.commit()
+    flash("Department removed.", "success")
+    return redirect(url_for("main.admin_departments"))

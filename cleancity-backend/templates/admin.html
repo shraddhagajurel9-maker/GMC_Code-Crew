@@ -87,7 +87,9 @@
                 <th>Title</th>
                 <th>Location</th>
                 <th>Assigned To</th>
+                <th>Department</th>
                 <th>Status</th>
+                <th>Remarks</th>
                 <th>Date</th>
                 <th>Action</th>
             </tr>
@@ -99,6 +101,7 @@
                 <td>{{ c.title }}</td>
                 <td>{{ c.location }}</td>
                 <td>{{ c.assigned_to or '-' }}</td>
+                <td>{{ c.department or '-' }}</td>
                 <td>
                     {% if c.status == 'Pending' %}
                         <span class="badge bg-warning text-dark">{{ c.status }}</span>
@@ -108,6 +111,7 @@
                         <span class="badge bg-success">{{ c.status }}</span>
                     {% endif %}
                 </td>
+                <td>{{ (c.remarks or 'No remarks yet')[:60] }}{% if c.remarks and c.remarks|length > 60 %}...{% endif %}</td>
                 <td>{{ c.created_at.strftime('%Y-%m-%d') }}</td>
                 <td>
                     <a href="{{ url_for('main.complaint_detail', complaint_id=c.id) }}"

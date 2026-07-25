@@ -11,64 +11,28 @@
 </head>
 <body>
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-success">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-success py-2">
         <div class="container-fluid">
             <a class="navbar-brand fw-bold" href="{{ url_for('main.landing') }}">
                 <i class="bi bi-recycle"></i> CleanCity Nepal
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navContent">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navContent">
-                <ul class="navbar-nav ms-auto">
-                    {% if current_user.is_authenticated %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('main.dashboard') }}">
-                                <i class="bi bi-speedometer2"></i> Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('main.report') }}">
-                                <i class="bi bi-plus-circle"></i> Report
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('main.complaints') }}">
-                                <i class="bi bi-list-ul"></i> Complaints
-                            </a>
-                        </li>
-                        {% if current_user.role == 'municipality' %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('main.admin_dashboard') }}">
-                                <i class="bi bi-graph-up"></i> Admin
-                            </a>
-                        </li>
-                        {% endif %}
-                        <li class="nav-item">
-                            <span class="nav-link text-light">
-                                <i class="bi bi-person-circle"></i>
-                                {{ current_user.username }}
-                                <span class="badge bg-light text-success">{{ current_user.role }}</span>
-                            </span>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('main.logout') }}">
-                                <i class="bi bi-box-arrow-right"></i> Logout
-                            </a>
-                        </li>
-                    {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('main.login') }}">
-                                <i class="bi bi-box-arrow-in-right"></i> Login
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{{ url_for('main.register') }}">
-                                <i class="bi bi-person-plus"></i> Register
-                            </a>
-                        </li>
-                    {% endif %}
-                </ul>
+            <div class="ms-auto">
+                {% if current_user.is_authenticated %}
+                <span class="navbar-text text-light me-3">
+                    <i class="bi bi-person-circle"></i> {{ current_user.username }}
+                    <span class="badge bg-light text-success ms-2">{{ current_user.role }}</span>
+                </span>
+                <a class="btn btn-outline-light btn-sm" href="{{ url_for('main.logout') }}">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </a>
+                {% else %}
+                <a class="btn btn-outline-light btn-sm" href="{{ url_for('main.login') }}">
+                    <i class="bi bi-box-arrow-in-right"></i> Login
+                </a>
+                <a class="btn btn-light btn-sm ms-2" href="{{ url_for('main.register') }}">
+                    <i class="bi bi-person-plus"></i> Register
+                </a>
+                {% endif %}
             </div>
         </div>
     </nav>
@@ -79,6 +43,23 @@
             <nav class="col-md-2 d-none d-md-block sidebar py-3">
                 <div class="position-sticky">
                     <ul class="nav flex-column">
+                        {% if current_user.role == 'municipality' %}
+                        <li class="nav-item">
+                            <a class="nav-link sidebar-link" href="{{ url_for('main.admin_dashboard') }}">
+                                <i class="bi bi-bar-chart-line"></i> Admin Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link sidebar-link" href="{{ url_for('main.admin_complaints') }}">
+                                <i class="bi bi-tools"></i> Manage Complaints
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link sidebar-link" href="{{ url_for('main.admin_departments') }}">
+                                <i class="bi bi-diagram-3"></i> Department Setup
+                            </a>
+                        </li>
+                        {% else %}
                         <li class="nav-item">
                             <a class="nav-link sidebar-link" href="{{ url_for('main.dashboard') }}">
                                 <i class="bi bi-speedometer2"></i> Dashboard
@@ -92,13 +73,6 @@
                         <li class="nav-item">
                             <a class="nav-link sidebar-link" href="{{ url_for('main.complaints') }}">
                                 <i class="bi bi-list-ul"></i> My Complaints
-                            </a>
-                        </li>
-                        {% if current_user.role == 'municipality' %}
-                        <hr class="text-success">
-                        <li class="nav-item">
-                            <a class="nav-link sidebar-link" href="{{ url_for('main.admin_dashboard') }}">
-                                <i class="bi bi-bar-chart-line"></i> Analytics
                             </a>
                         </li>
                         {% endif %}

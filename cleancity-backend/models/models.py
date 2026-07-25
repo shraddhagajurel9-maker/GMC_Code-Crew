@@ -26,9 +26,17 @@ class User(UserMixin, db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-    @property
+    @property  
     def is_municipality(self):
         return self.role == "municipality"
+
+
+class Department(db.Model):
+    __tablename__ = "departments"
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(120), unique=True, nullable=False)
+    description = db.Column(db.Text, nullable=True)
 
 
 class Complaint(db.Model):
@@ -41,6 +49,9 @@ class Complaint(db.Model):
     location = db.Column(db.String(256), nullable=False)
     status = db.Column(db.String(20), nullable=False, default="Pending")
     assigned_to = db.Column(db.String(120), nullable=True)
+    department = db.Column(db.String(120), nullable=True)
+    remarks = db.Column(db.Text, nullable=True)
+    updated_at = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc))
     reported_by = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
 
@@ -55,6 +66,9 @@ class Complaint(db.Model):
             "location": self.location,
             "status": self.status,
             "assigned_to": self.assigned_to,
+            "department": self.department,
+            "remarks": self.remarks,
+            "updated_at": self.updated_at.strftime("%Y-%m-%d %H:%M") if self.updated_at else None,
             "created_at": self.created_at.strftime("%Y-%m-%d %H:%M"),
             "reported_by": self.reported_by,
         }
